@@ -662,7 +662,9 @@ systemctl enable snapper-cleanup.timer
 chmod 750 /.snapshots
 chown root:wheel /.snapshots
 
-snapper -c root create --description "Fresh Arch installation" --cleanup-algorithm number
+snapper -c root create \
+    --description "Fresh Arch installation" \
+    --cleanup-algorithm number
 SNAPPER_CHROOT
 
 cat > /mnt/usr/local/sbin/arch-rollback <<'ROLLBACK'
