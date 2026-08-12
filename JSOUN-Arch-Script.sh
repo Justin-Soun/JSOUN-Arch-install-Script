@@ -504,6 +504,7 @@ BASE_PACKAGES=(
     libvirt
     virt-manager
     dnsmasq
+    bridge-utils
     edk2-ovmf
 )
 
@@ -572,15 +573,15 @@ useradd -m -G wheel,audio,video,storage,optical,libvirt -s /bin/bash "$USERNAME"
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 # Services
-systemctl enable NetworkManager
-systemctl enable bluetooth
-systemctl enable sshd
-systemctl enable libvirtd
-systemctl enable docker
-systemctl enable fstrim.timer
+SYSTEMD_OFFLINE=1 systemctl enable NetworkManager
+SYSTEMD_OFFLINE=1 systemctl enable bluetooth
+SYSTEMD_OFFLINE=1 systemctl enable sshd
+SYSTEMD_OFFLINE=1 systemctl enable libvirtd
+SYSTEMD_OFFLINE=1 systemctl enable docker
+SYSTEMD_OFFLINE=1 systemctl enable fstrim.timer
 
 if [[ -n "$DISPLAY_MANAGER" ]]; then
-    systemctl enable "$DISPLAY_MANAGER"
+    SYSTEMD_OFFLINE=1 systemctl enable "$DISPLAY_MANAGER"
 fi
 
 # GRUB bootloader (UEFI). EFI is mounted at /efi; /boot remains in Btrfs.
@@ -613,7 +614,7 @@ EOF
 chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
 
 # Btrfs maintenance
-systemctl enable fstrim.timer
+SYSTEMD_OFFLINE=1 systemctl enable fstrim.timer
 
 rm -f /root/install-vars.env
 CHROOT
@@ -656,15 +657,16 @@ EMPTY_PRE_POST_CLEANUP="yes"
 EMPTY_PRE_POST_MIN_AGE="1800"
 EOF
 
-systemctl enable snapper-timeline.timer
-systemctl enable snapper-cleanup.timer
+SYSTEMD_OFFLINE=1 systemctl enable snapper-timeline.timer
+SYSTEMD_OFFLINE=1 systemctl enable snapper-cleanup.timer
 
 chmod 750 /.snapshots
 chown root:wheel /.snapshots
 
-snapper -c root create \
-    --description "Fresh Arch installation" \
-    --cleanup-algorithm number
+# Do not invoke Snapper during installation.
+# The live ISO/chroot does not have the installed system's normal D-Bus/systemd
+# environment. snap-pac and the Snapper timers will create snapshots normally
+# after the first boot.
 SNAPPER_CHROOT
 
 cat > /mnt/usr/local/sbin/arch-rollback <<'ROLLBACK'
@@ -689,6 +691,25 @@ grub-mkconfig -o /boot/grub/grub.cfg
 echo "Rollback prepared. Reboot and choose the normal Arch Linux GRUB entry."
 ROLLBACK
 chmod 0755 /mnt/usr/local/sbin/arch-rollback
+
+cat > /mnt/usr/local/sbin/arch-snapshot-baseline <<'BASELINE'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+[[ $EUID -eq 0 ]] || {
+    echo "Run as root: sudo arch-snapshot-baseline" >&2
+    exit 1
+}
+
+snapper -c root create \
+    --description "Fresh Arch installation baseline" \
+    --cleanup-algorithm number
+
+echo "Baseline snapshot created."
+echo "You can verify it with: sudo snapper -c root list"
+BASELINE
+
+chmod 0755 /mnt/usr/local/sbin/arch-snapshot-baseline
 
 # ----------------------------- passwords -----------------------------
 
@@ -730,7 +751,7 @@ if arch-chroot /mnt test -x /usr/bin/grub-btrfsd; then
 set -Eeuo pipefail
 grub-mkconfig -o /boot/grub/grub.cfg
 if systemctl list-unit-files | grep -q '^grub-btrfsd.service'; then
-    systemctl enable grub-btrfsd.service
+    SYSTEMD_OFFLINE=1 systemctl enable grub-btrfsd.service
 fi
 GRUB_BTRFS
 else
@@ -801,9 +822,13 @@ echo "  • QEMU/KVM, libvirt, virt-manager"
 echo "  • Wireshark, Nmap, tcpdump, iperf3, SSH, SMB tools"
 echo
 echo "Recovery:"
-echo "  • Automatic Snapper snapshots around pacman transactions"
+echo "  • Snapper + snap-pac snapshots begin after first boot"
 echo "  • GRUB snapshot boot entries via grub-btrfs"
 echo "  • Rollback helper: sudo arch-rollback"
+echo
+echo "After first boot:"
+echo "  • Run: sudo arch-snapshot-baseline"
+echo "    This creates the initial known-good Snapper snapshot with normal D-Bus/systemd running."
 echo
 echo "Before rebooting:"
 echo "  umount -R /mnt"
