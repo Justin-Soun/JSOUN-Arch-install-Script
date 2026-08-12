@@ -504,6 +504,7 @@ BASE_PACKAGES=(
     libvirt
     virt-manager
     dnsmasq
+    bridge-utils
     edk2-ovmf
 )
 
@@ -721,9 +722,22 @@ echo
 echo "Set the password for $USERNAME:"
 arch-chroot /mnt passwd "$USERNAME"
 
+# ----------------------------- Rust toolchain bootstrap -----------------------------
+
+title "Initializing Rust Toolchain"
+
+# rustup provides cargo/rustc shims, but they cannot work until a default
+# toolchain is selected. paru is written in Rust, so initialize stable first.
+arch-chroot /mnt runuser -u "$USERNAME" -- bash -lc '
+set -e
+rustup default stable
+rustc --version
+cargo --version
+'
+
 # ----------------------------- AUR helper + Plex -----------------------------
 
-title "Installing AUR Helper and Plex Clients"
+title "Installing AUR Helper and AUR Applications"
 
 # Build paru as the regular user using a temporary writable build directory.
 mkdir -p "/mnt/home/$USERNAME/.cache/aur-build"
@@ -760,9 +774,6 @@ fi
 # ----------------------------- default shell / rust -----------------------------
 
 title "Developer Setup"
-
-# Initialize Rust stable toolchain for the user. Failure is non-fatal.
-arch-chroot /mnt runuser -u "$USERNAME" -- bash -lc 'rustup default stable' || true
 
 # Add useful shell initialization without forcing zsh as login shell.
 cat >> "/mnt/home/$USERNAME/.bashrc" <<'EOF'
