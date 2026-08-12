@@ -147,7 +147,7 @@ case "$DE_CHOICE" in
     7)
         DE_NAME="i3"
         DISPLAY_STACK="X11/Xorg"
-        DE_PACKAGES=(xorg-server xorg-xinit i3-wm i3status i3lock dmenu lightdm lightdm-gtk-greeter picom)
+        DE_PACKAGES=(xorg-server xorg-xinit i3-wm i3status i3lock rofi lightdm lightdm-gtk-greeter picom)
         DISPLAY_MANAGER="lightdm"
         ;;
     8)
@@ -171,58 +171,110 @@ title "Terminal Emulator"
 
 echo "Choose your terminal emulator:"
 echo
-echo "  1) Desktop default  — use the terminal that comes with the selected desktop"
-echo "  2) Xfce Terminal    — lightweight, tabs/profiles, excellent for X11"
-echo "  3) Alacritty        — lightweight GPU-accelerated terminal"
-echo "  4) Kitty            — GPU-accelerated with more built-in features"
-echo "  5) WezTerm          — feature-rich, Lua-configurable"
-echo "  6) xterm            — extremely lightweight, very basic"
+echo "GPU tag means the terminal itself uses GPU-accelerated rendering."
+echo
+echo "  1) Desktop default     [GPU: varies]    [DE native]"
+echo "  2) Xfce Terminal       [GPU: No]        [X11/Wayland]  Lightweight GTK/VTE"
+echo "  3) Alacritty           [GPU: YES]       [X11/Wayland]  Minimal + fast"
+echo "  4) Kitty               [GPU: YES]       [X11/Wayland]  Fast + feature rich"
+echo "  5) WezTerm             [GPU: YES]       [X11/Wayland]  Multiplexer + Lua"
+echo "  6) Ghostty             [GPU: YES]       [X11/Wayland]  Native GTK + modern"
+echo "  7) Contour             [GPU: YES]       [X11/Wayland]  OpenGL 3.3 renderer"
+echo "  8) Rio                 [GPU: YES]       [X11/Wayland]  WebGPU renderer"
+echo "  9) Zutty               [GPU: YES]       [X11 only]     Very lightweight OpenGL ES"
+echo " 10) COSMIC Terminal     [GPU: YES]       [Wayland]      COSMIC/wgpu"
+echo " 11) Terminology         [GPU: Optional]  [X11/Wayland]  EFL; OpenGL can be enabled"
+echo " 12) cool-retro-term     [GPU: YES*]      [X11/Wayland]  QtQuick CRT-style effects"
+echo " 13) Konsole             [GPU: No]        [X11/Wayland]  KDE terminal"
+echo " 14) Yakuake             [GPU: No]        [X11/Wayland]  Drop-down Konsole"
+echo " 15) QTerminal           [GPU: No]        [X11/Wayland]  Lightweight Qt/LXQt"
+echo " 16) GNOME Terminal      [GPU: No]        [X11/Wayland]  GTK/VTE"
+echo " 17) GNOME Console       [GPU: No]        [X11/Wayland]  Minimal GNOME terminal"
+echo " 18) Ptyxis              [GPU: No]        [X11/Wayland]  GNOME/container focused"
+echo " 19) MATE Terminal       [GPU: No]        [X11/Wayland]  GTK/VTE"
+echo " 20) LXTerminal          [GPU: No]        [X11/Wayland]  Very lightweight GTK/VTE"
+echo " 21) Sakura              [GPU: No]        [X11/Wayland]  Lightweight GTK/VTE"
+echo " 22) Terminator          [GPU: No]        [X11/Wayland]  Split-pane GTK/VTE"
+echo " 23) Guake               [GPU: No]        [X11/Wayland]  Drop-down GTK/VTE"
+echo " 24) Tilda               [GPU: No]        [X11/Wayland]  Lightweight drop-down"
+echo " 25) Pantheon Terminal   [GPU: No]        [X11/Wayland]  Elementary terminal"
+echo " 26) Deepin Terminal     [GPU: No]        [X11/Wayland]  Deepin terminal"
+echo " 27) Deepin Terminal GTK [GPU: No]        [X11/Wayland]  Legacy GTK version"
+echo " 28) rxvt-unicode        [GPU: No]        [X11 only]     Lightweight urxvt"
+echo " 29) xterm               [GPU: No]        [X11 only]     Classic/minimal"
+echo " 30) Maui Station        [GPU: No]        [X11/Wayland]  MauiKit terminal"
+echo " 31) QMLKonsole          [GPU: No]        [Wayland/X11]  Plasma Mobile-oriented"
+echo " 32) foot                [GPU: No]        [Wayland only] Very lightweight"
 echo
 read -rp "Selection [1]: " TERMINAL_CHOICE
 TERMINAL_CHOICE=${TERMINAL_CHOICE:-1}
 
 TERMINAL_PACKAGES=()
 TERMINAL_NAME="Desktop default"
+TERMINAL_CMD=""
+TERMINAL_GPU="varies"
+TERMINAL_SESSION="DE native"
 
 case "$TERMINAL_CHOICE" in
     1)
         case "$DE_CHOICE" in
-            1) TERMINAL_NAME="Xfce Terminal" ;;
-            2) TERMINAL_PACKAGES=(gnome-terminal); TERMINAL_NAME="GNOME Terminal" ;;
-            3) TERMINAL_PACKAGES=(mate-terminal); TERMINAL_NAME="MATE Terminal" ;;
-            4) TERMINAL_PACKAGES=(qterminal); TERMINAL_NAME="QTerminal" ;;
-            5) TERMINAL_PACKAGES=(konsole); TERMINAL_NAME="Konsole" ;;
-            6) TERMINAL_PACKAGES=(gnome-terminal); TERMINAL_NAME="GNOME Terminal" ;;
-            7) TERMINAL_PACKAGES=(xfce4-terminal); TERMINAL_NAME="Xfce Terminal" ;;
-            8) TERMINAL_PACKAGES=(xfce4-terminal); TERMINAL_NAME="Xfce Terminal" ;;
-        esac
-        ;;
-    2)
-        TERMINAL_PACKAGES=(xfce4-terminal)
-        TERMINAL_NAME="Xfce Terminal"
-        ;;
-    3)
-        TERMINAL_PACKAGES=(alacritty)
-        TERMINAL_NAME="Alacritty"
-        ;;
-    4)
-        TERMINAL_PACKAGES=(kitty)
-        TERMINAL_NAME="Kitty"
-        ;;
-    5)
-        TERMINAL_PACKAGES=(wezterm)
-        TERMINAL_NAME="WezTerm"
-        ;;
-    6)
-        TERMINAL_PACKAGES=(xterm)
-        TERMINAL_NAME="xterm"
-        ;;
-    *)
-        die "Invalid terminal selection."
-        ;;
+            1) TERMINAL_NAME="Xfce Terminal"; TERMINAL_CMD="xfce4-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+            2) TERMINAL_PACKAGES=(gnome-terminal); TERMINAL_NAME="GNOME Terminal"; TERMINAL_CMD="gnome-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+            3) TERMINAL_PACKAGES=(mate-terminal); TERMINAL_NAME="MATE Terminal"; TERMINAL_CMD="mate-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+            4) TERMINAL_PACKAGES=(qterminal); TERMINAL_NAME="QTerminal"; TERMINAL_CMD="qterminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+            5) TERMINAL_PACKAGES=(konsole); TERMINAL_NAME="Konsole"; TERMINAL_CMD="konsole"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+            6) TERMINAL_PACKAGES=(gnome-console); TERMINAL_NAME="GNOME Console"; TERMINAL_CMD="kgx"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+            7) TERMINAL_PACKAGES=(xfce4-terminal); TERMINAL_NAME="Xfce Terminal"; TERMINAL_CMD="xfce4-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+            8) TERMINAL_NAME="Linux virtual console"; TERMINAL_CMD=""; TERMINAL_GPU="No"; TERMINAL_SESSION="Console" ;;
+        esac ;;
+    2) TERMINAL_PACKAGES=(xfce4-terminal); TERMINAL_NAME="Xfce Terminal"; TERMINAL_CMD="xfce4-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+    3) TERMINAL_PACKAGES=(alacritty); TERMINAL_NAME="Alacritty"; TERMINAL_CMD="alacritty"; TERMINAL_GPU="YES"; TERMINAL_SESSION="X11/Wayland" ;;
+    4) TERMINAL_PACKAGES=(kitty); TERMINAL_NAME="Kitty"; TERMINAL_CMD="kitty"; TERMINAL_GPU="YES"; TERMINAL_SESSION="X11/Wayland" ;;
+    5) TERMINAL_PACKAGES=(wezterm); TERMINAL_NAME="WezTerm"; TERMINAL_CMD="wezterm"; TERMINAL_GPU="YES"; TERMINAL_SESSION="X11/Wayland" ;;
+    6) TERMINAL_PACKAGES=(ghostty); TERMINAL_NAME="Ghostty"; TERMINAL_CMD="ghostty"; TERMINAL_GPU="YES"; TERMINAL_SESSION="X11/Wayland" ;;
+    7) TERMINAL_PACKAGES=(contour); TERMINAL_NAME="Contour"; TERMINAL_CMD="contour"; TERMINAL_GPU="YES"; TERMINAL_SESSION="X11/Wayland" ;;
+    8) TERMINAL_PACKAGES=(rio); TERMINAL_NAME="Rio"; TERMINAL_CMD="rio"; TERMINAL_GPU="YES"; TERMINAL_SESSION="X11/Wayland" ;;
+    9) TERMINAL_PACKAGES=(zutty); TERMINAL_NAME="Zutty"; TERMINAL_CMD="zutty"; TERMINAL_GPU="YES"; TERMINAL_SESSION="X11 only" ;;
+   10) TERMINAL_PACKAGES=(cosmic-terminal); TERMINAL_NAME="COSMIC Terminal"; TERMINAL_CMD="cosmic-term"; TERMINAL_GPU="YES"; TERMINAL_SESSION="Wayland" ;;
+   11) TERMINAL_PACKAGES=(terminology); TERMINAL_NAME="Terminology"; TERMINAL_CMD="terminology"; TERMINAL_GPU="Optional"; TERMINAL_SESSION="X11/Wayland" ;;
+   12) TERMINAL_PACKAGES=(cool-retro-term); TERMINAL_NAME="cool-retro-term"; TERMINAL_CMD="cool-retro-term"; TERMINAL_GPU="YES*"; TERMINAL_SESSION="X11/Wayland" ;;
+   13) TERMINAL_PACKAGES=(konsole); TERMINAL_NAME="Konsole"; TERMINAL_CMD="konsole"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   14) TERMINAL_PACKAGES=(yakuake); TERMINAL_NAME="Yakuake"; TERMINAL_CMD="yakuake"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   15) TERMINAL_PACKAGES=(qterminal); TERMINAL_NAME="QTerminal"; TERMINAL_CMD="qterminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   16) TERMINAL_PACKAGES=(gnome-terminal); TERMINAL_NAME="GNOME Terminal"; TERMINAL_CMD="gnome-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   17) TERMINAL_PACKAGES=(gnome-console); TERMINAL_NAME="GNOME Console"; TERMINAL_CMD="kgx"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   18) TERMINAL_PACKAGES=(ptyxis); TERMINAL_NAME="Ptyxis"; TERMINAL_CMD="ptyxis"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   19) TERMINAL_PACKAGES=(mate-terminal); TERMINAL_NAME="MATE Terminal"; TERMINAL_CMD="mate-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   20) TERMINAL_PACKAGES=(lxterminal); TERMINAL_NAME="LXTerminal"; TERMINAL_CMD="lxterminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   21) TERMINAL_PACKAGES=(sakura); TERMINAL_NAME="Sakura"; TERMINAL_CMD="sakura"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   22) TERMINAL_PACKAGES=(terminator); TERMINAL_NAME="Terminator"; TERMINAL_CMD="terminator"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   23) TERMINAL_PACKAGES=(guake); TERMINAL_NAME="Guake"; TERMINAL_CMD="guake"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   24) TERMINAL_PACKAGES=(tilda); TERMINAL_NAME="Tilda"; TERMINAL_CMD="tilda"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   25) TERMINAL_PACKAGES=(pantheon-terminal); TERMINAL_NAME="Pantheon Terminal"; TERMINAL_CMD="io.elementary.terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   26) TERMINAL_PACKAGES=(deepin-terminal); TERMINAL_NAME="Deepin Terminal"; TERMINAL_CMD="deepin-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   27) TERMINAL_PACKAGES=(deepin-terminal-gtk); TERMINAL_NAME="Deepin Terminal GTK"; TERMINAL_CMD="deepin-terminal"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   28) TERMINAL_PACKAGES=(rxvt-unicode); TERMINAL_NAME="rxvt-unicode"; TERMINAL_CMD="urxvt"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11 only" ;;
+   29) TERMINAL_PACKAGES=(xterm); TERMINAL_NAME="xterm"; TERMINAL_CMD="xterm"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11 only" ;;
+   30) TERMINAL_PACKAGES=(maui-station); TERMINAL_NAME="Maui Station"; TERMINAL_CMD="station"; TERMINAL_GPU="No"; TERMINAL_SESSION="X11/Wayland" ;;
+   31) TERMINAL_PACKAGES=(qmlkonsole); TERMINAL_NAME="QMLKonsole"; TERMINAL_CMD="qmlkonsole"; TERMINAL_GPU="No"; TERMINAL_SESSION="Wayland/X11" ;;
+   32) TERMINAL_PACKAGES=(foot); TERMINAL_NAME="foot"; TERMINAL_CMD="foot"; TERMINAL_GPU="No"; TERMINAL_SESSION="Wayland only" ;;
+    *) die "Invalid terminal selection." ;;
 esac
 
+# Catch obviously incompatible choices before touching the disk.
+if [[ "$DISPLAY_STACK" == "X11/Xorg" && "$TERMINAL_SESSION" == *"Wayland only"* ]]; then
+    die "$TERMINAL_NAME is Wayland-only, but $DE_NAME is configured as an X11/Xorg session."
+fi
+
+# Verify the selected package still exists in the current official Arch repositories.
+if (( ${#TERMINAL_PACKAGES[@]} > 0 )); then
+    pacman -Si "${TERMINAL_PACKAGES[@]}" >/dev/null 2>&1 || \
+        die "Selected terminal package is not available in the currently synced Arch repositories: ${TERMINAL_PACKAGES[*]}"
+fi
+
 log "Terminal: $TERMINAL_NAME"
+log "Terminal GPU acceleration: $TERMINAL_GPU"
+log "Terminal display support: $TERMINAL_SESSION"
 
 # ----------------------------- GPU selection -----------------------------
 
@@ -710,6 +762,98 @@ BASELINE
 
 chmod 0755 /mnt/usr/local/sbin/arch-snapshot-baseline
 
+# ----------------------------- i3 / Rofi configuration -----------------------------
+
+if [[ "$DE_CHOICE" == "7" ]]; then
+    title "Configuring i3 Application Launcher"
+
+    mkdir -p "/mnt/home/$USERNAME/.config/i3"
+    mkdir -p "/mnt/home/$USERNAME/.config/rofi"
+
+    if [[ -f /mnt/etc/i3/config ]]; then
+        cp /mnt/etc/i3/config "/mnt/home/$USERNAME/.config/i3/config"
+    else
+        cat > "/mnt/home/$USERNAME/.config/i3/config" <<'I3BASE'
+set $mod Mod4
+font pango:monospace 8
+bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Shift+q kill
+bindsym $mod+Shift+r restart
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Exit i3?' -B 'Yes' 'i3-msg exit'"
+bar {
+    status_command i3status
+}
+I3BASE
+    fi
+
+    if grep -q '^set \$mod ' "/mnt/home/$USERNAME/.config/i3/config"; then
+        sed -i 's/^set \$mod .*/set $mod Mod4/' "/mnt/home/$USERNAME/.config/i3/config"
+    else
+        sed -i '1i set $mod Mod4' "/mnt/home/$USERNAME/.config/i3/config"
+    fi
+
+    sed -i '/^[[:space:]]*bindsym[[:space:]]\+\$mod+d[[:space:]]/d' \
+        "/mnt/home/$USERNAME/.config/i3/config"
+
+    # Make Super+Enter launch the terminal selected in this installer.
+    sed -i '/^[[:space:]]*bindsym[[:space:]]\+\$mod+Return[[:space:]]/d' \
+        "/mnt/home/$USERNAME/.config/i3/config"
+
+    if [[ -n "$TERMINAL_CMD" ]]; then
+        printf '\n# Installer-selected terminal\nbindsym $mod+Return exec --no-startup-id %s\n' \
+            "$TERMINAL_CMD" >> "/mnt/home/$USERNAME/.config/i3/config"
+    fi
+
+    cat >> "/mnt/home/$USERNAME/.config/i3/config" <<'I3ROFI'
+
+# Floating application search (Manjaro-style)
+bindsym $mod+d exec --no-startup-id rofi -show drun
+I3ROFI
+
+    cat > "/mnt/home/$USERNAME/.config/rofi/config.rasi" <<'ROFI'
+configuration {
+    modi: "drun,run";
+    show-icons: true;
+    drun-display-format: "{name}";
+    display-drun: "Apps";
+}
+
+window {
+    location: center;
+    anchor: center;
+    width: 42%;
+}
+
+mainbox {
+    children: [ "inputbar", "listview" ];
+    spacing: 8px;
+    padding: 12px;
+}
+
+inputbar {
+    children: [ "prompt", "entry" ];
+    spacing: 8px;
+}
+
+prompt {
+    enabled: true;
+    str: "Search";
+}
+
+listview {
+    lines: 8;
+    columns: 1;
+    fixed-height: false;
+    scrollbar: false;
+}
+ROFI
+
+    arch-chroot /mnt chown -R "$USERNAME:$USERNAME" \
+        "/home/$USERNAME/.config/i3" "/home/$USERNAME/.config/rofi"
+
+    log "i3 launcher configured: Super+D -> centered Rofi application search."
+fi
+
 # ----------------------------- passwords -----------------------------
 
 title "Set Passwords"
@@ -800,8 +944,11 @@ echo "Hostname:      $HOSTNAME"
 echo "User:          $USERNAME"
 echo "Desktop:       $DE_NAME"
 echo "Display stack: $DISPLAY_STACK"
-echo "Terminal:      $TERMINAL_NAME"
+echo "Terminal:      $TERMINAL_NAME (GPU: $TERMINAL_GPU; $TERMINAL_SESSION)"
 echo "Shell:         Zsh"
+if [[ "$DE_CHOICE" == "7" ]]; then
+    echo "i3 launcher:   Super+D -> Rofi floating app search"
+fi
 echo "Browser:       Vivaldi"
 echo "Snapshots:     Snapper + snap-pac"
 echo "Bootloader:    GRUB + grub-btrfs"
