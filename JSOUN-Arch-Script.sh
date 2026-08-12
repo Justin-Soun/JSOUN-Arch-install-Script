@@ -504,7 +504,6 @@ BASE_PACKAGES=(
     libvirt
     virt-manager
     dnsmasq
-    bridge-utils
     edk2-ovmf
 )
 
