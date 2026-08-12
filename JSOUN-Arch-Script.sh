@@ -782,7 +782,7 @@ eval "$(starship init bash)"
 eval "$(zoxide init bash)"
 EOF
 
-chown "$USERNAME:$USERNAME" "/mnt/home/$USERNAME/.bashrc"
+arch-chroot /mnt chown "$USERNAME:$USERNAME" "/home/$USERNAME/.bashrc"
 
 # Docker group membership
 arch-chroot /mnt usermod -aG docker "$USERNAME"
